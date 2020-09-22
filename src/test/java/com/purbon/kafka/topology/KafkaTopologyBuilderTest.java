@@ -80,7 +80,7 @@ public class KafkaTopologyBuilderTest {
     verify(topologyAdminClient, times(1)).close();
   }
 
-  @Test(expected = IOException.class)
+  @Test(expected = RuntimeException.class)
   public void verifyProblematicParametersTest() throws IOException {
     String file = "fileThatDoesNotExist.yaml";
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(cliOps, props);
@@ -91,7 +91,7 @@ public class KafkaTopologyBuilderTest {
     builder.verifyRequiredParameters(file, cliOps);
   }
 
-  @Test(expected = IOException.class)
+  @Test(expected = RuntimeException.class)
   public void verifyProblematicParametersTest2() throws IOException, URISyntaxException {
     URL dirOfDescriptors = getClass().getResource("/descriptor.yaml");
     String fileOrDirPath = Paths.get(dirOfDescriptors.toURI()).toFile().toString();

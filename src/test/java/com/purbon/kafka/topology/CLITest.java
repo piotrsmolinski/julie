@@ -43,7 +43,7 @@ public class CLITest {
           "--clientConfig", "topology-builder-sasl-plain.properties"
         };
 
-    doNothing().when(cli).processTopology(eq("descriptor.yaml"), anyMap());
+    doNothing().when(cli).processImport(eq("descriptor.yaml"), anyMap());
 
     Map<String, String> config = new HashMap<>();
     config.put(BROKERS_OPTION, "localhost:9092");
@@ -53,7 +53,7 @@ public class CLITest {
     config.put(ADMIN_CLIENT_CONFIG_OPTION, "topology-builder-sasl-plain.properties");
     cli.run(args);
 
-    verify(cli, times(1)).processTopology(eq("descriptor.yaml"), eq(config));
+    verify(cli, times(1)).processImport(eq("descriptor.yaml"), eq(config));
   }
 
   @Test
@@ -66,7 +66,7 @@ public class CLITest {
           "--dryRun"
         };
 
-    doNothing().when(cli).processTopology(eq("descriptor.yaml"), anyMap());
+    doNothing().when(cli).processImport(eq("descriptor.yaml"), anyMap());
 
     Map<String, String> config = new HashMap<>();
     config.put(BROKERS_OPTION, "localhost:9092");
@@ -76,6 +76,6 @@ public class CLITest {
     config.put(ADMIN_CLIENT_CONFIG_OPTION, "topology-builder-sasl-plain.properties");
     cli.run(args);
 
-    verify(cli, times(1)).processTopology(eq("descriptor.yaml"), eq(config));
+    verify(cli, times(1)).processImport(eq("descriptor.yaml"), eq(config));
   }
 }

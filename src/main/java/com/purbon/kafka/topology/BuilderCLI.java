@@ -153,22 +153,24 @@ public class BuilderCLI {
     Map<String, String> config = parseConfig(cmd);
 
     if (cmd.hasOption("export")) {
-
-      try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config)) {
-        builder.exportTopology(topology);
-      }
-
+      processExport(topology, config);
       System.out.println("Kafka Topology exported");
-
     } else {
-
-      KafkaTopologyBuilder.verifyRequiredParameters(topology, config);
-
-      try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config)) {
-        builder.importTopology(topology);
-      }
-
+      processImport(topology, config);
       System.out.println("Kafka Topology imported");
+    }
+  }
+
+  public void processImport(String topology, Map<String, String> config) {
+    KafkaTopologyBuilder.verifyRequiredParameters(topology, config);
+    try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config)) {
+      builder.importTopology(topology);
+    }
+  }
+
+  public void processExport(String topology, Map<String, String> config) {
+    try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config)) {
+      builder.exportTopology(topology);
     }
   }
 

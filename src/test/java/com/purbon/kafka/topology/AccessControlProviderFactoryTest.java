@@ -72,7 +72,7 @@ public class AccessControlProviderFactoryTest {
   }
 
   @Test
-  public void testACLsConfig() throws IOException {
+  public void testACLsConfig() {
 
     TopologyBuilderConfig config = new TopologyBuilderConfig(cliOps, props);
 
@@ -82,8 +82,8 @@ public class AccessControlProviderFactoryTest {
     assertThat(factory.get(), instanceOf(SimpleAclsProvider.class));
   }
 
-  @Test(expected = IOException.class)
-  public void testWrongProviderConfig() throws IOException {
+  @Test(expected = RuntimeException.class)
+  public void testWrongProviderConfig() {
 
     props.put(
         ACCESS_CONTROL_IMPLEMENTATION_CLASS, "com.purbon.kafka.topology.roles.MyCustomProvider");

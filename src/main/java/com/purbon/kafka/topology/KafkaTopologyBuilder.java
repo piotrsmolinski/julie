@@ -39,7 +39,7 @@ public class KafkaTopologyBuilder implements AutoCloseable {
     this.accessControlManager = accessControlManager;
   }
 
-  public static KafkaTopologyBuilder build(Map<String, String> config) throws IOException {
+  public static KafkaTopologyBuilder build(Map<String, String> config) {
 
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(config);
     TopologyBuilderAdminClient adminClient =
@@ -54,8 +54,7 @@ public class KafkaTopologyBuilder implements AutoCloseable {
   public static KafkaTopologyBuilder build(
       TopologyBuilderConfig config,
       TopologyBuilderAdminClient adminClient,
-      AccessControlProvider accessControlProvider)
-      throws IOException {
+      AccessControlProvider accessControlProvider) {
 
     ClusterState cs = buildStateProcessor(config);
 
@@ -72,20 +71,19 @@ public class KafkaTopologyBuilder implements AutoCloseable {
     return new KafkaTopologyBuilder(config, topicManager, accessControlManager);
   }
 
-  public static void verifyRequiredParameters(String topologyFile, Map<String, String> config)
-      throws IOException {
+  public static void verifyRequiredParameters(String topologyFile, Map<String, String> config) {
     if (!Files.exists(Paths.get(topologyFile))) {
-      throw new IOException("Topology file does not exist");
+      throw new RuntimeException("Topology file does not exist");
     }
 
     String configFilePath = config.get(BuilderCLI.ADMIN_CLIENT_CONFIG_OPTION);
 
     if (!Files.exists(Paths.get(configFilePath))) {
-      throw new IOException("AdminClient config file does not exist");
+      throw new RuntimeException("AdminClient config file does not exist");
     }
   }
 
-  public void importTopology(String topologyFile) throws IOException {
+  public void importTopology(String topologyFile) {
 
     Topology topology = TopologyDescriptorBuilder.build(topologyFile);
     config.validateWith(topology);
@@ -132,7 +130,7 @@ public class KafkaTopologyBuilder implements AutoCloseable {
     }
   }
 
-  private static ClusterState buildStateProcessor(TopologyBuilderConfig config) throws IOException {
+  private static ClusterState buildStateProcessor(TopologyBuilderConfig config) {
 
     String stateProcessorClass =
         config
@@ -150,7 +148,7 @@ public class KafkaTopologyBuilder implements AutoCloseable {
         throw new IOException(stateProcessorClass + " Unknown state processor provided.");
       }
     } catch (Exception ex) {
-      throw new IOException(ex);
+      throw new RuntimeException(ex);
     }
   }
 

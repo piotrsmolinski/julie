@@ -96,7 +96,7 @@ public class AccessControlManager {
     }
   }
 
-  public void sync(final Topology topology) throws IOException {
+  public void sync(final Topology topology) {
     plan.clear();
     clearAcls();
 
@@ -145,19 +145,23 @@ public class AccessControlManager {
     apply();
   }
 
-  public void apply() throws IOException {
+  public void apply() {
     for (Action action : plan) {
       if (dryRun) {
         outputStream.println(action);
       } else {
-        action.run();
+        try {
+          action.run();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
         if (!action.getBindings().isEmpty()) clusterState.add(action.getBindings());
       }
     }
     clusterState.flushAndClose();
   }
 
-  private void syncPlatformAcls(final Topology topology) throws IOException {
+  private void syncPlatformAcls(final Topology topology) {
     // Sync platform relevant Access Control List.
     Platform platform = topology.getPlatform();
 
@@ -196,13 +200,13 @@ public class AccessControlManager {
                             controlProvider, principal, predefinedRole, topicPrefix))));
   }
 
-  private Action syncApplicationAcls(DynamicUser app, String topicPrefix) throws IOException {
+  private Action syncApplicationAcls(DynamicUser app, String topicPrefix) {
     if (app instanceof KStream) {
       return new SetAclsForKStreams(controlProvider, (KStream) app, topicPrefix);
     } else if (app instanceof Connector) {
       return new SetAclsForKConnect(controlProvider, (Connector) app, topicPrefix);
     } else {
-      throw new IOException("Wrong dynamic app used.");
+      throw new IllegalArgumentException("Wrong dynamic app used.");
     }
   }
 

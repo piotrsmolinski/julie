@@ -54,65 +54,65 @@ public class TopologyBuilderAdminClient {
     this.config = config;
   }
 
-  public Set<String> listTopics(ListTopicsOptions options) throws IOException {
+  public Set<String> listTopics(ListTopicsOptions options) {
     Set<String> listOfTopics;
     try {
       listOfTopics = adminClient.listTopics(options).names().get();
     } catch (InterruptedException | ExecutionException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
     return listOfTopics;
   }
 
-  public Set<String> listTopics() throws IOException {
+  public Set<String> listTopics() {
     return listTopics(new ListTopicsOptions());
   }
 
-  public Set<String> listApplicationTopics() throws IOException {
+  public Set<String> listApplicationTopics() {
     ListTopicsOptions options = new ListTopicsOptions();
     options.listInternal(false);
     return listTopics(options);
   }
 
-  public void updateTopicConfig(Topic topic, String fullTopicName) throws IOException {
+  public void updateTopicConfig(Topic topic, String fullTopicName) {
     try {
       updateTopicConfigPostAK23(topic, fullTopicName);
     } catch (InterruptedException | ExecutionException ex) {
       LOGGER.error(ex);
-      throw new IOException(ex);
+      throw new RuntimeException(ex);
     }
   }
 
-  public int getPartitionCount(String topic) throws IOException {
+  public int getPartitionCount(String topic) {
     try {
       Map<String, TopicDescription> results =
           adminClient.describeTopics(Collections.singletonList(topic)).all().get();
       return results.get(topic).partitions().size();
     } catch (InterruptedException | ExecutionException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 
-  public void updatePartitionCount(Topic topic, String topicName) throws IOException {
+  public void updatePartitionCount(Topic topic, String topicName) {
     Map<String, NewPartitions> map = new HashMap<>();
     map.put(topicName, NewPartitions.increaseTo(topic.partitionsCount()));
     try {
       adminClient.createPartitions(map).all().get();
     } catch (InterruptedException | ExecutionException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 
-  public void clearAcls() throws IOException {
+  public void clearAcls() {
     Collection<AclBindingFilter> filters = new ArrayList<>();
     filters.add(AclBindingFilter.ANY);
     clearAcls(filters);
   }
 
-  public void clearAcls(TopologyAclBinding aclBinding) throws IOException {
+  public void clearAcls(TopologyAclBinding aclBinding) {
     Collection<AclBindingFilter> filters = new ArrayList<>();
 
     LOGGER.debug("clearAcl = " + aclBinding);
@@ -134,12 +134,12 @@ public class TopologyBuilderAdminClient {
     clearAcls(filters);
   }
 
-  private void clearAcls(Collection<AclBindingFilter> filters) throws IOException {
+  private void clearAcls(Collection<AclBindingFilter> filters) {
     try {
       adminClient.deleteAcls(filters).all().get();
     } catch (ExecutionException | InterruptedException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -184,7 +184,7 @@ public class TopologyBuilderAdminClient {
     return configs.get(resource);
   }
 
-  public void createTopic(Topic topic, String fullTopicName) throws IOException {
+  public void createTopic(Topic topic, String fullTopicName) {
 
     int numPartitions =
         Integer.parseInt(topic.getConfig().getOrDefault(TopicManager.NUM_PARTITIONS, "3"));
@@ -198,7 +198,7 @@ public class TopologyBuilderAdminClient {
       createAllTopics(newTopics);
     } catch (ExecutionException | InterruptedException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -207,12 +207,12 @@ public class TopologyBuilderAdminClient {
     adminClient.createTopics(newTopics).all().get();
   }
 
-  public void deleteTopics(Collection<String> topics) throws IOException {
+  public void deleteTopics(Collection<String> topics) {
     try {
       adminClient.deleteTopics(topics).all().get();
     } catch (ExecutionException | InterruptedException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -221,7 +221,7 @@ public class TopologyBuilderAdminClient {
    *
    * @return String, the current Kafka Protocol version
    */
-  private String findKafkaVersion() throws IOException {
+  private String findKafkaVersion() {
     ConfigResource resource = new ConfigResource(Type.BROKER, "inter.broker.protocol.version");
     String kafkaVersion = "";
     try {
@@ -231,12 +231,12 @@ public class TopologyBuilderAdminClient {
           configs.get(resource).get("inter.broker.protocol.version").value().split("-")[0];
     } catch (ExecutionException | InterruptedException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
     return kafkaVersion;
   }
 
-  public List<AclBinding> setAclsForProducer(String principal, String topic) throws IOException {
+  public List<AclBinding> setAclsForProducer(String principal, String topic) {
     List<AclBinding> acls = new ArrayList<>();
     acls.add(buildTopicLevelAcl(principal, topic, PatternType.LITERAL, AclOperation.DESCRIBE));
     acls.add(buildTopicLevelAcl(principal, topic, PatternType.LITERAL, AclOperation.WRITE));
@@ -244,7 +244,7 @@ public class TopologyBuilderAdminClient {
     return acls;
   }
 
-  public List<AclBinding> setAclsForConsumer(Consumer consumer, String topic) throws IOException {
+  public List<AclBinding> setAclsForConsumer(Consumer consumer, String topic) {
 
     List<AclBinding> acls = new ArrayList<>();
     acls.add(
@@ -413,12 +413,12 @@ public class TopologyBuilderAdminClient {
     return acls;
   }
 
-  private void createAcls(Collection<AclBinding> acls) throws IOException {
+  private void createAcls(Collection<AclBinding> acls) {
     try {
       adminClient.createAcls(acls).all().get();
     } catch (ExecutionException | InterruptedException e) {
       LOGGER.error(e);
-      throw new IOException(e);
+      throw new RuntimeException(e);
     }
   }
 

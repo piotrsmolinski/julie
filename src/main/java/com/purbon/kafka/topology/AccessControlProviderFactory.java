@@ -28,7 +28,7 @@ public class AccessControlProviderFactory {
     this.mdsApiClientBuilder = mdsApiClientBuilder;
   }
 
-  public AccessControlProvider get() throws IOException {
+  public AccessControlProvider get() {
 
     String accessControlClass = getAccessControlClass();
 
@@ -50,8 +50,10 @@ public class AccessControlProviderFactory {
         default:
           throw new IOException(accessControlClass + " Unknown access control provided.");
       }
+    } catch (RuntimeException ex) {
+      throw ex;
     } catch (Exception ex) {
-      throw new IOException(ex);
+      throw new RuntimeException(ex);
     }
   }
 

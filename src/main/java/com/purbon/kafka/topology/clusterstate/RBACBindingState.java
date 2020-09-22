@@ -1,6 +1,5 @@
 package com.purbon.kafka.topology.clusterstate;
 
-
 import java.util.List;
 import java.util.Map;
 

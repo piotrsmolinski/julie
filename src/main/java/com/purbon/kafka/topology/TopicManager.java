@@ -63,7 +63,7 @@ public class TopicManager {
             .collect(Collectors.toList());
   }
 
-  public void sync(Topology topology) throws IOException {
+  public void sync(Topology topology) {
 
     // List all topics existing in the cluster, excluding internal topics
     Set<String> listOfTopics = adminClient.listApplicationTopics();
@@ -104,7 +104,11 @@ public class TopicManager {
       if (dryRun) {
         outputStream.println(action);
       } else {
-        action.run();
+        try {
+          action.run();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
   }
@@ -116,7 +120,7 @@ public class TopicManager {
         .get();
   }
 
-  public void printCurrentState(PrintStream os) throws IOException {
+  public void printCurrentState(PrintStream os) {
     os.println("List of Topics:");
     adminClient.listTopics().forEach(os::println);
   }
