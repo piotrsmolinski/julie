@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 
@@ -202,5 +203,10 @@ public class TopologyBuilderConfig {
 
   public Properties getProperties() {
     return this.properties;
+  }
+
+  public Map<String, Object> getConfig() {
+    return this.properties.entrySet().stream()
+        .collect(Collectors.toMap(e -> (String) e.getKey(), e -> e.getValue()));
   }
 }
