@@ -58,4 +58,8 @@ public interface Project {
   void setRbacRawRoles(Map<String, List<String>> rbacRawRoles);
 
   Map<String, List<String>> getRbacRawRoles();
+
+  void setKafkaRawACLs(Map<String, List<ACLEntry>> acls);
+
+  Map<String, List<ACLEntry>> getKafkaRawACLs();
 }

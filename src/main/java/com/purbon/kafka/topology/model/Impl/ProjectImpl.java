@@ -1,5 +1,6 @@
 package com.purbon.kafka.topology.model.Impl;
 
+import com.purbon.kafka.topology.model.ACLEntry;
 import com.purbon.kafka.topology.model.Project;
 import com.purbon.kafka.topology.model.Topic;
 import com.purbon.kafka.topology.model.users.Connector;
@@ -23,6 +24,7 @@ public class ProjectImpl implements Project, Cloneable {
   private List<Connector> connectors;
   private List<Schemas> schemas;
   private Map<String, List<String>> rbacRawRoles;
+  private Map<String, List<ACLEntry>> kafkaRawACLs;
 
   private List<Topic> topics;
 
@@ -43,6 +45,7 @@ public class ProjectImpl implements Project, Cloneable {
     this.connectors = new ArrayList<>();
     this.schemas = new ArrayList<>();
     this.rbacRawRoles = new HashMap<>();
+    this.kafkaRawACLs = new HashMap<>();
   }
 
   public String getName() {
@@ -133,22 +136,13 @@ public class ProjectImpl implements Project, Cloneable {
   }
 
   @Override
-  public ProjectImpl clone() {
-    try {
-      return (ProjectImpl) super.clone();
-    } catch (CloneNotSupportedException e) {
-      ProjectImpl project = new ProjectImpl();
-      project.setConnectors(getConnectors());
-      project.setConsumers(getConsumers());
-      project.setName(getName());
-      project.setRbacRawRoles(getRbacRawRoles());
-      project.setProducers(getProducers());
-      project.setStreams(getStreams());
-      project.setTopics(getTopics());
-      project.setTopologyPrefix(getTopologyPrefix());
-      project.setZookeepers(getZookeepers());
-      return project;
-    }
+  public Map<String, List<ACLEntry>> getKafkaRawACLs() {
+    return kafkaRawACLs;
+  }
+
+  @Override
+  public void setKafkaRawACLs(Map<String, List<ACLEntry>> kafkaRawACLs) {
+    this.kafkaRawACLs = kafkaRawACLs;
   }
 
   @Override
@@ -159,5 +153,15 @@ public class ProjectImpl implements Project, Cloneable {
   @Override
   public void setSchemas(List<Schemas> schemas) {
     this.schemas = schemas;
+  }
+
+  @Override
+  public ProjectImpl clone() {
+    try {
+      return (ProjectImpl) super.clone();
+    } catch (CloneNotSupportedException e) {
+      // never thrown, because ProjectImpl implements Cloneable
+      throw new RuntimeException(e);
+    }
   }
 }
