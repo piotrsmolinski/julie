@@ -38,6 +38,12 @@ public class BuilderCLI {
 
   public static final String APP_NAME = "kafka-topology-builder";
 
+  public static final String IMPORT_OPTION = "import";
+  public static final String IMPORT_DESC = "Import the topology into the cluster.";
+
+  public static final String EXPORT_OPTION = "export";
+  public static final String EXPORT_DESC = "Export the topology from the cluster.";
+
   private HelpFormatter formatter;
   private CommandLineParser parser;
   private Options options;
@@ -96,6 +102,22 @@ public class BuilderCLI {
             .required(false)
             .build();
 
+    final Option importOption =
+        Option.builder()
+            .longOpt(IMPORT_OPTION)
+            .hasArg(false)
+            .desc(IMPORT_DESC)
+            .required(false)
+            .build();
+
+    final Option exportOption =
+        Option.builder()
+            .longOpt(EXPORT_OPTION)
+            .hasArg(false)
+            .desc(EXPORT_DESC)
+            .required(false)
+            .build();
+
     final Option helpOption =
         Option.builder().longOpt(HELP_OPTION).hasArg(false).desc(HELP_DESC).required(false).build();
 
@@ -109,6 +131,8 @@ public class BuilderCLI {
     options.addOption(dryRunOption);
     options.addOption(quietOption);
     options.addOption(versionOption);
+    options.addOption(importOption);
+    options.addOption(exportOption);
     options.addOption(helpOption);
 
     return options;
@@ -128,8 +152,24 @@ public class BuilderCLI {
     String topology = cmd.getOptionValue(TOPOLOGY_OPTION);
     Map<String, String> config = parseConfig(cmd);
 
-    processTopology(topology, config);
-    System.out.println("Kafka Topology updated");
+    if (cmd.hasOption("export")) {
+
+      try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config)) {
+        builder.exportTopology(topology);
+      }
+
+      System.out.println("Kafka Topology exported");
+
+    } else {
+
+      KafkaTopologyBuilder.verifyRequiredParameters(topology, config);
+
+      try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config)) {
+        builder.importTopology(topology);
+      }
+
+      System.out.println("Kafka Topology imported");
+    }
   }
 
   public Map<String, String> parseConfig(CommandLine cmd) {
@@ -165,17 +205,19 @@ public class BuilderCLI {
     CommandLine cmd = null;
     try {
       cmd = parser.parse(options, args);
+      if (cmd.hasOption("export")) {
+        if (cmd.hasOption("import")) {
+          throw new ParseException("--import and --export options are mutually exclusive");
+        }
+        // TODO: checks for options irrelevant for export
+      } else {
+        // TODO: checks for options irrelevant for import
+      }
     } catch (ParseException e) {
       System.out.println("Parsing failed cause of " + e.getMessage());
       formatter.printHelp("cli", options);
       exit(1);
     }
     return cmd;
-  }
-
-  public void processTopology(String topologyFile, Map<String, String> config) throws IOException {
-    try (KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(topologyFile, config)) {
-      builder.run();
-    }
   }
 }

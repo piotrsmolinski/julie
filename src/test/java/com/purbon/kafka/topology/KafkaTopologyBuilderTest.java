@@ -73,8 +73,7 @@ public class KafkaTopologyBuilderTest {
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(cliOps, props);
 
     KafkaTopologyBuilder builder =
-        KafkaTopologyBuilder.build(
-            fileOrDirPath, builderConfig, topologyAdminClient, accessControlProvider);
+        KafkaTopologyBuilder.build(builderConfig, topologyAdminClient, accessControlProvider);
 
     builder.close();
 
@@ -87,7 +86,7 @@ public class KafkaTopologyBuilderTest {
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(cliOps, props);
 
     KafkaTopologyBuilder builder =
-        KafkaTopologyBuilder.build(file, builderConfig, topologyAdminClient, accessControlProvider);
+        KafkaTopologyBuilder.build(builderConfig, topologyAdminClient, accessControlProvider);
 
     builder.verifyRequiredParameters(file, cliOps);
   }
@@ -99,8 +98,7 @@ public class KafkaTopologyBuilderTest {
 
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(cliOps, props);
     KafkaTopologyBuilder builder =
-        KafkaTopologyBuilder.build(
-            fileOrDirPath, builderConfig, topologyAdminClient, accessControlProvider);
+        KafkaTopologyBuilder.build(builderConfig, topologyAdminClient, accessControlProvider);
 
     builder.verifyRequiredParameters(fileOrDirPath, cliOps);
   }
@@ -117,8 +115,7 @@ public class KafkaTopologyBuilderTest {
 
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(cliOps, props);
     KafkaTopologyBuilder builder =
-        KafkaTopologyBuilder.build(
-            fileOrDirPath, builderConfig, topologyAdminClient, accessControlProvider);
+        KafkaTopologyBuilder.build(builderConfig, topologyAdminClient, accessControlProvider);
 
     builder.verifyRequiredParameters(fileOrDirPath, cliOps);
   }
@@ -139,7 +136,7 @@ public class KafkaTopologyBuilderTest {
     config.put(QUIET_OPTION, "false");
     config.put(ADMIN_CLIENT_CONFIG_OPTION, clientConfigFile);
 
-    KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(fileOrDirPath, config);
+    KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config);
 
     builder.setTopicManager(topicManager);
     builder.setAccessControlManager(accessControlManager);
@@ -148,7 +145,7 @@ public class KafkaTopologyBuilderTest {
 
     doNothing().when(accessControlManager).sync(anyObject());
 
-    builder.run();
+    builder.importTopology(fileOrDirPath);
     builder.close();
 
     verify(topicManager, times(1)).sync(anyObject());
@@ -171,7 +168,7 @@ public class KafkaTopologyBuilderTest {
     config.put(QUIET_OPTION, "false");
     config.put(ADMIN_CLIENT_CONFIG_OPTION, clientConfigFile);
 
-    KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(fileOrDirPath, config);
+    KafkaTopologyBuilder builder = KafkaTopologyBuilder.build(config);
 
     builder.setTopicManager(topicManager);
     builder.setAccessControlManager(accessControlManager);
@@ -180,7 +177,7 @@ public class KafkaTopologyBuilderTest {
 
     doNothing().when(accessControlManager).sync(anyObject());
 
-    builder.run();
+    builder.importTopology(fileOrDirPath);
     builder.close();
 
     verify(topicManager, times(1)).sync(anyObject());
@@ -195,8 +192,7 @@ public class KafkaTopologyBuilderTest {
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(cliOps, props);
 
     KafkaTopologyBuilder builder =
-        KafkaTopologyBuilder.build(
-            fileOrDirPath, builderConfig, topologyAdminClient, accessControlProvider);
+        KafkaTopologyBuilder.build(builderConfig, topologyAdminClient, accessControlProvider);
 
     builder.setTopicManager(topicManager);
     builder.setAccessControlManager(accessControlManager);
@@ -205,7 +201,7 @@ public class KafkaTopologyBuilderTest {
 
     doNothing().when(accessControlManager).sync(anyObject());
 
-    builder.run();
+    builder.importTopology(fileOrDirPath);
     builder.close();
 
     verify(topicManager, times(1)).sync(anyObject());

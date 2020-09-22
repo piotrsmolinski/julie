@@ -7,14 +7,16 @@ import static com.purbon.kafka.topology.TopologyBuilderConfig.STATE_PROCESSOR_DE
 import static com.purbon.kafka.topology.TopologyBuilderConfig.STATE_PROCESSOR_IMPLEMENTATION_CLASS;
 
 import com.purbon.kafka.topology.api.mds.MDSApiClientBuilder;
+import com.purbon.kafka.topology.clusterstate.ClusterStateProvider;
 import com.purbon.kafka.topology.clusterstate.FileStateProcessor;
 import com.purbon.kafka.topology.clusterstate.RedisStateProcessor;
+import com.purbon.kafka.topology.clusterstate.TopologyGenerator;
 import com.purbon.kafka.topology.model.Topology;
 import com.purbon.kafka.topology.schemas.SchemaRegistryManager;
+import com.purbon.kafka.topology.serdes.TopologySerdes;
 import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map;
@@ -26,22 +28,18 @@ public class KafkaTopologyBuilder implements AutoCloseable {
 
   private TopicManager topicManager;
   private AccessControlManager accessControlManager;
-  private Topology topology;
   private TopologyBuilderConfig config;
 
   private KafkaTopologyBuilder(
-      Topology topology,
       TopologyBuilderConfig config,
       TopicManager topicManager,
       AccessControlManager accessControlManager) {
-    this.topology = topology;
     this.config = config;
     this.topicManager = topicManager;
     this.accessControlManager = accessControlManager;
   }
 
-  public static KafkaTopologyBuilder build(String topologyFile, Map<String, String> config)
-      throws IOException {
+  public static KafkaTopologyBuilder build(Map<String, String> config) throws IOException {
 
     TopologyBuilderConfig builderConfig = new TopologyBuilderConfig(config);
     TopologyBuilderAdminClient adminClient =
@@ -50,21 +48,14 @@ public class KafkaTopologyBuilder implements AutoCloseable {
         new AccessControlProviderFactory(
             builderConfig, adminClient, new MDSApiClientBuilder(builderConfig));
 
-    KafkaTopologyBuilder builder =
-        build(topologyFile, builderConfig, adminClient, accessControlProviderFactory.get());
-    builder.verifyRequiredParameters(topologyFile, config);
-    return builder;
+    return build(builderConfig, adminClient, accessControlProviderFactory.get());
   }
 
   public static KafkaTopologyBuilder build(
-      String topologyFile,
       TopologyBuilderConfig config,
       TopologyBuilderAdminClient adminClient,
       AccessControlProvider accessControlProvider)
       throws IOException {
-
-    Topology topology = TopologyDescriptorBuilder.build(topologyFile);
-    config.validateWith(topology);
 
     ClusterState cs = buildStateProcessor(config);
 
@@ -78,10 +69,10 @@ public class KafkaTopologyBuilder implements AutoCloseable {
 
     TopicManager topicManager = new TopicManager(adminClient, schemaRegistryManager, config);
 
-    return new KafkaTopologyBuilder(topology, config, topicManager, accessControlManager);
+    return new KafkaTopologyBuilder(config, topicManager, accessControlManager);
   }
 
-  public void verifyRequiredParameters(String topologyFile, Map<String, String> config)
+  public static void verifyRequiredParameters(String topologyFile, Map<String, String> config)
       throws IOException {
     if (!Files.exists(Paths.get(topologyFile))) {
       throw new IOException("Topology file does not exist");
@@ -94,7 +85,10 @@ public class KafkaTopologyBuilder implements AutoCloseable {
     }
   }
 
-  public void run() throws IOException {
+  public void importTopology(String topologyFile) throws IOException {
+
+    Topology topology = TopologyDescriptorBuilder.build(topologyFile);
+    config.validateWith(topology);
 
     topicManager.sync(topology);
     accessControlManager.sync(topology);
@@ -102,6 +96,21 @@ public class KafkaTopologyBuilder implements AutoCloseable {
     if (!config.isQuiet() && !config.isDryRun()) {
       topicManager.printCurrentState(System.out);
       accessControlManager.printCurrentState(System.out);
+    }
+  }
+
+  public void exportTopology(String topologyFile) {
+
+    ClusterStateProvider provider = new ClusterStateProvider(config.getConfig());
+
+    com.purbon.kafka.topology.clusterstate.ClusterState state = provider.readClusterState();
+
+    Topology topology = new TopologyGenerator().generateTopology(state);
+
+    try (Writer writer = new OutputStreamWriter(new FileOutputStream(topologyFile))) {
+      writer.write(new TopologySerdes().serialise(topology));
+    } catch (IOException e) {
+      throw new RuntimeException("Failed writing topology", e);
     }
   }
 
